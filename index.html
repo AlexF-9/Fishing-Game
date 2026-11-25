@@ -2,7 +2,8 @@
 <html lang="pt">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0e2233">
   <meta name="claude:viewport-fit-sides" content="cover">
   <title>Pescaria</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎣</text></svg>">
@@ -10,19 +11,24 @@
 <body>
 <div id="wrap">
   <div id="hud">
-    <span class="pill" id="hAnimal">🐱 Gato</span>
+    <!-- Em ecrãs estreitos os textos .lbl escondem-se e fica só o ícone -->
+    <span class="pill" id="hAnimal">🐱<span class="lbl"> Gato</span></span>
     <span class="pill" id="hCoins">🪙 0</span>
     <span class="pill" id="hBucket">🪣 0/5</span>
-    <span class="pill" id="hTime">☀️ Dia</span>
-    <span class="pill" id="hZone">🏞️ Lago</span>
+    <span class="pill wide-only" id="hTime">☀️ Dia</span>
+    <span class="pill wide-only" id="hZone">🏞️ Lago</span>
     <span class="spacer"></span>
-    <button id="bSell">Vender</button>
-    <button class="sec" id="bShop">🛒 Loja</button>
-    <button class="sec" id="bBook">📖 Livro</button>
-    <button class="sec" id="bZone" style="display:none">⛵ Mar</button>
-    <button class="ghost" id="bAnimal">🐾 Animal</button>
-    <button class="ghost" id="bMusic" title="Música">🎵</button>
-    <button class="ghost" id="bMute" title="Som (tudo)">🔊</button>
+    <button id="bSell" aria-label="Vender">💰<span class="lbl"> Vender</span></button>
+    <button class="sec" id="bShop" aria-label="Loja">🛒<span class="lbl"> Loja</span></button>
+    <button class="sec" id="bBook" aria-label="Livro de Peixes">📖<span class="lbl"> Livro</span></button>
+    <button class="sec" id="bZone" style="display:none">⛵<span class="lbl"> Mar</span></button>
+    <!-- No telemóvel, Animal / Música / Som ficam dentro do menu ⚙️ -->
+    <button class="ghost" id="bMore" aria-label="Mais opções" aria-expanded="false">⚙️</button>
+    <div id="moreMenu">
+      <button class="ghost" id="bAnimal">🐾<span class="lbl"> Animal</span></button>
+      <button class="ghost" id="bMusic" title="Música">🎵<span class="menu-lbl"> Música</span></button>
+      <button class="ghost" id="bMute" title="Som (tudo)">🔊</button>
+    </div>
   </div>
 
   <div id="stage">
@@ -69,15 +75,30 @@
         <h2 id="catchName"></h2>
         <div id="catchBadges"></div>
         <p id="catchInfo" style="margin:6px 0 12px"></p>
-        <button id="bCatchOk">Continuar <small>(Espaço)</small></button>
+        <button id="bCatchOk">Continuar <small class="key-only">(Espaço)</small></button>
       </div>
     </div>
   </div>
 
+  <!-- Botão de ação grande para o polegar (só em ecrãs táteis) -->
+  <div id="touchBar">
+    <button id="bAction" aria-label="Pescar">
+      <span class="act-ic">🎣</span>
+      <span id="actLabel">Segura para lançar</span>
+    </button>
+  </div>
+
   <div id="help">
-    Mantém <kbd>Espaço</kbd> (ou carrega no ecrã) para ganhar força e larga para lançar ·
-    Quando aparecer <b>!</b> carrega rápido ·
-    No minijogo carrega quando o marcador estiver na <b style="color:#7be07b">zona verde</b>
+    <span class="key-only">
+      Mantém <kbd>Espaço</kbd> (ou carrega no ecrã) para ganhar força e larga para lançar ·
+      Quando aparecer <b>!</b> carrega rápido ·
+      No minijogo carrega quando o marcador estiver na <b style="color:#7be07b">zona verde</b>
+    </span>
+    <span class="touch-only">
+      Segura o botão 🎣 (ou o ecrã) para ganhar força e larga para lançar ·
+      No <b>!</b> toca rápido ·
+      No minijogo toca quando o marcador estiver na <b style="color:#7be07b">zona verde</b>
+    </span>
   </div>
 </div>
 <script type="module" src="/src/main.ts"></script>

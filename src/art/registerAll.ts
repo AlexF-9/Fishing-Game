@@ -55,7 +55,7 @@ export function registerAll(scene: Phaser.Scene): void {
     for (let i = 0; i < sheet.w / ANIMAL_W; i++) tex.add(i, 0, i * ANIMAL_W, 0, ANIMAL_W, ANIMAL_H);
     const frames = (list: number[]) => list.map(frame => ({ key, frame }));
     scene.anims.create({ key: `${id}_idle`, frames: frames(ANIM_FRAMES.idle), frameRate: 3, repeat: -1 });
-    scene.anims.create({ key: `${id}_cast`, frames: frames(ANIM_FRAMES.cast), frameRate: 10, repeat: 0 });
+    scene.anims.create({ key: `${id}_cast`, frames: frames(ANIM_FRAMES.cast), frameRate: 12, repeat: 0 });
     scene.anims.create({ key: `${id}_reel`, frames: frames(ANIM_FRAMES.reel), frameRate: 8, repeat: -1 });
     add(scene, TEX.paw(id), drawPaw(id));
   }

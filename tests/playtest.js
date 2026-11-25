@@ -191,7 +191,7 @@ async page => {
   ok('Trocar para Pinguim mantém moedas, upgrades e livro',
     (await ev(() => { const s = window.__pescaria.save; return s.animal === 'pinguim' && s.coins === 777 && s.upg.cana === 2 && !!s.book.carpa; })));
   await page.click('#bMute');
-  ok('Botão de som alterna para 🔇', (await page.textContent('#bMute')) === '🔊' || (await page.textContent('#bMute')) === '🔇');
+  ok('Botão de som alterna para 🔇', (await page.textContent('#bMute')).startsWith('🔇') || (await page.textContent('#bMute')).startsWith('🔊'));
   const muteNow = await ev(() => window.__pescaria.save.mute);
   await page.reload(); await page.waitForFunction(() => window.__pescaria?.game?.scene?.isActive('UI')); await sleep(300);
   ok('Recarregar mantém animal, moedas e som',

@@ -10,6 +10,7 @@ import { $, hide, isShown, overlayOpen, show } from './dom';
 import { updHud } from './hud';
 import { buildSelect } from './selectPanel';
 import { buildShop } from './shop';
+import { initTouch } from './touch';
 
 function sell(): void {
   if (!save.bucket.length) return;
@@ -118,6 +119,7 @@ export function initUI(): void {
     b.addEventListener('keyup', e => { if (e.code === 'Space') e.preventDefault(); });
   });
 
+  initTouch();
   updHud();
   if (!save.animal) { buildSelect(); show('ovSelect'); }
 }

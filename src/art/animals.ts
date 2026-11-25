@@ -5,27 +5,45 @@ import { PixelCanvas, shade, stripOf } from './pixel';
 export const ANIMAL_W = 40;
 export const ANIMAL_H = 48;
 
-/** Ponto onde a pata segura a cana, relativo aos pés (centro inferior do frame). */
-export const PAW_OFFSET = { x: 10, y: -19 };
-
 interface Pose {
   /** Respiração: 1 = peito cheio. */
   b?: number;
-  /** Deslocamento da cabeça. */
+  /** Deslocamento extra da cabeça (em relação ao corpo). */
   hx?: number;
   hy?: number;
+  /** Inclinação do corpo inteiro: <0 para trás (preparar), >0 para a frente (atirar). */
+  lean?: number;
+  /** Agachar: corpo mais baixo e largo, cabeça desce. */
+  crouch?: number;
+  /** Esticar: corpo mais alto e estreito (no momento do lançamento). */
+  stretch?: number;
 }
 
-/** Ordem dos frames na spritesheet. */
+/**
+ * Ordem dos frames na spritesheet. Os pés ficam sempre no chão; o corpo, a cabeça,
+ * a cauda e a pata da cana movem-se juntos (animação de corpo inteiro).
+ */
 export const POSES: Pose[] = [
-  // idle (respirar) 0–3
+  // 0–3 idle (respirar)
   { b: 0 }, { b: 0 }, { b: 1 }, { b: 1 },
-  // lançar 4–6: preparar, atirar, acompanhar
-  { hx: -2, hy: 1 }, { hx: 2 }, { hx: 3, hy: 1 },
-  // puxar 7–8
-  { hx: -1 }, { hx: -2, hy: 1, b: 1 },
+  // 4–5 carregar a força: inclina para trás e agacha mais com a força
+  { lean: -2, crouch: 1, hx: -1, hy: 1 },
+  { lean: -4, crouch: 2, hx: -2, hy: 1 },
+  // 6–8 lançar: estica para a frente, acompanha o gesto e assenta
+  { lean: 3, stretch: 1, hx: 2, hy: 1 },
+  { lean: 4, crouch: 1, hx: 3, hy: 1 },
+  { lean: 1, hx: 1 },
+  // 9–10 puxar: puxões para trás
+  { lean: -2, crouch: 1, hx: -1 },
+  { lean: -3, crouch: 2, hx: -2, hy: 1 },
 ];
-export const ANIM_FRAMES = { idle: [0, 1, 2, 3], cast: [4, 5, 6], reel: [7, 8] };
+export const ANIM_FRAMES = { idle: [0, 1, 2, 3], charge: [4, 5], cast: [6, 7, 8], reel: [9, 10] };
+
+/** Onde a pata segura a cana em cada frame, relativo aos pés (centro inferior do frame). */
+export function pawOffset(frame: number): { x: number; y: number } {
+  const p = POSES[frame] ?? POSES[0];
+  return { x: 10 + (p.lean ?? 0), y: -19 + (p.crouch ?? 0) - (p.stretch ?? 0) };
+}
 
 const EYE = '#1a1a1a', BLUSH = '#ff8f9e', PINK = '#f6a5b5', BEAK = '#f39a2b', BEAK_D = '#b86a12';
 
@@ -39,19 +57,24 @@ export function drawAnimalFrame(id: AnimalId, pose: Pose): PixelCanvas {
   const a = ANIMALS[id];
   const p = new PixelCanvas(ANIMAL_W, ANIMAL_H);
   const b = pose.b ?? 0, hx = pose.hx ?? 0, hy = pose.hy ?? 0;
+  const lean = pose.lean ?? 0, cr = pose.crouch ?? 0, st = pose.stretch ?? 0;
   const penguin = id === 'pinguim';
-  const bodyX = 20 + Math.round(hx / 2);
+  const bodyX = 20 + lean;
+  // o fundo do corpo fica sempre à mesma altura (pés no chão); muda o topo
+  const dy = cr - st;            // quanto o corpo desce (agachar) ou sobe (esticar)
+  const dw = cr - (st > 0 ? 1 : 0); // mais largo a agachar, mais estreito a esticar
 
-  // cauda (atrás de tudo)
+  // cauda (atrás de tudo): a ponta balança ao contrário da inclinação
   if (id === 'gato') {
+    const tipX = 4 - lean, tipY = 22 + cr * 2;
     for (let t = 0; t <= 1; t += 0.05) {
-      const x = (1 - t) * (1 - t) * 11 + 2 * (1 - t) * t * 0 + t * t * 4;
-      const y = (1 - t) * (1 - t) * 40 + 2 * (1 - t) * t * 38 + t * t * 22;
+      const x = (1 - t) * (1 - t) * (11 + lean) + 2 * (1 - t) * t * (0 - lean / 2) + t * t * tipX;
+      const y = (1 - t) * (1 - t) * 40 + 2 * (1 - t) * t * 38 + t * t * tipY;
       p.circle(x, y, 2, t > 0.8 ? a.dark : a.main);
     }
   } else if (id === 'lontra') {
-    p.thickLine(13, 42, 3, 45, 2.5, a.main);
-    p.thickLine(12, 43, 4, 45, 1, shade(a.main, -0.15));
+    p.thickLine(13 + lean, 42, 3 - Math.round(lean / 2), 45, 2.5, a.main);
+    p.thickLine(12 + lean, 43, 4 - Math.round(lean / 2), 45, 1, shade(a.main, -0.15));
   }
 
   // pés
@@ -61,20 +84,21 @@ export function drawAnimalFrame(id: AnimalId, pose: Pose): PixelCanvas {
 
   // corpo
   if (penguin) {
-    shadedEllipse(p, bodyX, 31 - b, 13, 15 + b, a.main);
-    p.ellipse(bodyX, 33 - b, 8, 11 + b, a.light);
-    p.thickLine(8, 25, 5, 36, 1.8, a.main); // asa
+    shadedEllipse(p, bodyX, 31 - b + dy, 13 + dw, 15 + b - dy, a.main);
+    p.ellipse(bodyX, 33 - b + dy, 8 + dw, 11 + b - dy, a.light);
+    // asa: abre para trás ao preparar e acompanha para a frente ao atirar
+    p.thickLine(8 + lean, 25 + dy, 5 + lean - Math.max(0, -lean), 36, 1.8, a.main);
   } else if (id === 'lontra') {
     // lontra: corpo mais esguio e comprido
-    shadedEllipse(p, bodyX, 34 - b, 10, 11 + b, a.main);
-    p.ellipse(bodyX, 35 - b, 6, 8 + b, a.light);
+    shadedEllipse(p, bodyX, 34 - b + dy, 10 + dw, 11 + b - dy, a.main);
+    p.ellipse(bodyX, 35 - b + dy, 6 + dw, 8 + b - dy, a.light);
   } else {
-    shadedEllipse(p, bodyX, 35 - b, 12, 10 + b, a.main);
-    p.ellipse(bodyX, 37 - b, 7, 6 + b, a.light);
+    shadedEllipse(p, bodyX, 35 - b + dy, 12 + dw, 10 + b - dy, a.main);
+    p.ellipse(bodyX, 37 - b + dy, 7 + dw, 6 + b - dy, a.light);
   }
 
-  // cabeça
-  const cx = 20 + hx, cy = (penguin ? 12 : 15) + hy - b;
+  // cabeça: segue o topo do corpo
+  const cx = bodyX + hx, cy = (penguin ? 12 : 15) + hy - b + 2 * dy;
   if (id === 'gato') {
     for (const s of [-1, 1]) {
       p.poly([cx + s * 11, cy - 3, cx + s * 8, cy - 15, cx + s * 2, cy - 8], a.main);

@@ -9,6 +9,7 @@ import { depthMeters, luckMult } from '../state/formulas';
 import { hex } from '../systems/DayNight';
 import { fishing } from '../systems/FishingController';
 import { overlayOpen } from '../ui/dom';
+import { isTouch } from '../ui/touch';
 
 interface Floater { text: Phaser.GameObjects.BitmapText; life: number }
 
@@ -37,7 +38,7 @@ export class UIScene extends Phaser.Scene {
 
   create(): void {
     this.g = this.add.graphics();
-    this.hint = this.text(W / 2 + 60, 24, 'Mantém ESPAÇO para lançar');
+    this.hint = this.text(W / 2 + 60, 24, isTouch() ? 'Segura no ecrã para lançar' : 'Mantém ESPAÇO para lançar');
     this.bang = this.add.image(0, 0, TEX.bang).setOrigin(0.5, 1);
     this.forca = this.text(0, 0, 'FORÇA').setOrigin(0.5, 1);
     this.reelTitle = this.text(W / 2, 27, 'PUXA! Carrega na zona verde');

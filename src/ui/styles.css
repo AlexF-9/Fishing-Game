@@ -57,4 +57,59 @@ button:disabled{background:#b9b2a8;box-shadow:0 3px 0 #8d867c;cursor:not-allowed
 .badge{display:inline-block;background:#ffd23f;color:#5a4300;border-radius:999px;padding:2px 10px;font-weight:800;font-size:13px;margin:4px}
 
 #help{color:#cfe3ef;font-size:14px;margin-top:8px;text-align:center;line-height:1.5}
+
+/* ---------- menu ⚙️ (só aparece em ecrãs estreitos) ---------- */
+#hud{position:relative}
+#bMore{display:none}
+#moreMenu{display:contents}
+.menu-lbl{display:none}
+
+/* ---------- toque ---------- */
+#stage,#touchBar,#hud{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+body{touch-action:manipulation}
+button,.animal{-webkit-tap-highlight-color:transparent}
+#touchBar{display:none;justify-content:center;margin-top:10px}
+#bAction{display:flex;align-items:center;gap:10px;min-height:64px;min-width:220px;padding:10px 22px;border-radius:999px;font-size:18px;touch-action:none;background:var(--accent)}
+#bAction .act-ic{font-size:30px;line-height:1}
+#bAction.hot{background:#e8a317;box-shadow:0 3px 0 #a06d0c}
+#bAction.wait{background:var(--teal);box-shadow:0 3px 0 var(--tealDark)}
+#bAction:active,#bAction.held{transform:translateY(3px) scale(.98);box-shadow:0 0 0 var(--accentDark)}
+.touch-only{display:none}
+@media (pointer: coarse){
+  #touchBar{display:flex}
+  .touch-only{display:inline}
+  .key-only{display:none}
+}
+
+/* ---------- ecrãs estreitos (telemóvel na vertical) ---------- */
+@media (max-width: 640px){
+  #wrap{padding-block:8px;padding-left:max(8px, env(safe-area-inset-left, 0px));padding-right:max(8px, env(safe-area-inset-right, 0px))}
+  #hud{flex-wrap:nowrap;gap:3px;overflow-x:auto;scrollbar-width:none;padding-bottom:3px}
+  #hud::-webkit-scrollbar{display:none}
+  .lbl,.wide-only,.spacer{display:none}
+  /* o animal vê-se no jogo e troca-se no menu ⚙️ */
+  #hAnimal{display:none}
+  .pill{padding:6px 7px;font-size:13px}
+  #hud button{padding:6px 5px;font-size:15px;min-width:36px;min-height:38px;flex:0 0 auto}
+  #hud .pill{flex:0 0 auto}
+  #bSell{margin-left:auto}
+  #bMore{display:inline-block}
+  #moreMenu{display:none;position:fixed;z-index:20;right:max(8px, env(safe-area-inset-right, 0px));top:calc(54px + env(safe-area-inset-top, 0px));flex-direction:column;gap:6px;padding:10px;background:var(--panel);border-radius:14px;box-shadow:0 10px 24px rgba(0,0,0,.45)}
+  #moreMenu.open{display:flex}
+  #moreMenu button{text-align:left;min-height:44px}
+  #moreMenu .lbl,#moreMenu .menu-lbl{display:inline}
+  /* janelas em ecrã inteiro (o palco do jogo é baixo demais na vertical) */
+  .overlay{position:fixed;z-index:30;padding:10px;padding-top:max(10px, env(safe-area-inset-top, 0px));padding-bottom:max(10px, env(safe-area-inset-bottom, 0px))}
+  .card{padding:14px;border-radius:14px;max-height:100%}
+  .card h2{font-size:21px}
+  #animals{grid-template-columns:repeat(2,1fr);gap:8px}
+  .animal canvas{width:90px;height:90px}
+  .animal b{font-size:16px}
+  .shopRow{grid-template-columns:34px 1fr;gap:8px}
+  .shopRow .ic{font-size:24px}
+  .shopRow button{grid-column:1/-1}
+  #bookGrid{grid-template-columns:repeat(2,1fr);gap:8px}
+  .fishCell canvas{width:100%;height:auto;aspect-ratio:120/72}
+  #help{font-size:12px}
+}
 kbd{background:#1d3a52;border-radius:5px;padding:1px 6px;border:1px solid #3d6283}

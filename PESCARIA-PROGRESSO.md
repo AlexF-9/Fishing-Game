@@ -123,6 +123,22 @@ As capturas de ecrã ficam em `tests/screenshots/`.
 
 ---
 
-## ⏳ Ideias para depois
-- Animação de "corpo inteiro" no lançamento (por agora a cabeça e a cana é que se mexem).
-- Controlos pensados para telemóvel (já dá para tocar no ecrã, mas o HUD ocupa duas linhas em ecrãs estreitos).
+## ✅ Também concluído
+
+### Animação de corpo inteiro
+- O animal tem agora 11 frames:
+  - **Respirar:** 4 frames.
+  - **Carregar a força:** 2 frames. Inclina-se para trás e agacha mais à medida que a força sobe.
+  - **Lançar:** 3 frames. Estica-se para a frente, acompanha o gesto e assenta.
+  - **Puxar:** 2 frames de puxões para trás.
+- O corpo, a cabeça, a cauda, a asa do pinguim e a pata da cana movem-se juntos, e os pés ficam no chão.
+- A cana sai sempre da pata, por isso acompanha a pose.
+
+### Telemóvel
+- **HUD:** em ecrãs estreitos (até 640px) cabe numa só linha, só com ícones. O Animal, a Música e o Som passam para o menu ⚙️.
+- **Botão 🎣:** há um botão grande de ação para o polegar. Faz o mesmo que segurar o Espaço, e o texto e a cor mudam com a fase ("Larga para lançar!", "Agora! Toca!", …).
+- **Janelas:** a Loja, o Livro, a escolha de animal e o cartão do peixe abrem em ecrã inteiro.
+- **Toque:** não há zoom com toque duplo, menu de pressão longa nem seleção de texto. Os botões têm uma área de toque de 36px ou mais.
+- **Vibração:** o telemóvel vibra na mordida, nos acertos e ao apanhar o peixe (Android; o iOS não suporta).
+- **Textos:** os textos de ajuda e a dica no jogo mudam para "toca/segura" em ecrãs táteis.
+- **Testes:** `tests/mobile-test.js` corre 19 testes em emulação de telemóvel (`playwright-cli -s=mobile open --mobile …`).

@@ -65,7 +65,13 @@ export class FishingController {
   private waitT = 0;
   private biteT = 0;
 
-  rodBase(): Point { return { x: AX + 10, y: AY - 22 }; }
+  /**
+   * Deslocamento da pata em relação à pose base, posto pela GameScene a cada frame
+   * (a cana acompanha o corpo quando o animal se inclina para lançar ou puxar).
+   */
+  pawShift: Point = { x: 0, y: 0 };
+
+  rodBase(): Point { return { x: AX + 10 + this.pawShift.x, y: AY - 22 + this.pawShift.y }; }
   rodTip(): Point {
     const b = this.rodBase();
     return { x: b.x + Math.cos(this.rodA) * ROD_LEN, y: b.y + Math.sin(this.rodA) * ROD_LEN };

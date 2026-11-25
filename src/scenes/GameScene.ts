@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { PAW_OFFSET } from '../art/animals';
+import { ANIM_FRAMES, pawOffset } from '../art/animals';
 import { bresenham } from '../art/pixel';
 import { TEX } from '../art/registerAll';
 import { BOAT_X, BOAT_Y, DOCK_Y, LH_LAMP, LH_X } from '../art/scenery';
@@ -12,6 +12,7 @@ import { persist, save } from '../state/save';
 import { advanceTime, duskAmount, hex, mixColor, moonArc, skyColors, sunArc, waterColors } from '../systems/DayNight';
 import { fishing, type Phase } from '../systems/FishingController';
 import { updTime } from '../ui/hud';
+import { syncAction } from '../ui/touch';
 
 interface Swimmer { img: Phaser.GameObjects.Image; v: number }
 interface Ripple { x: number; y: number; r: number; life: number }
@@ -231,6 +232,7 @@ export class GameScene extends Phaser.Scene {
     this.saveTimer += dt;
     if (this.saveTimer > 5) { this.saveTimer = 0; persist(); }
     updTime();
+    syncAction(fishing.phase);
     this.drawWorld();
   }
 
@@ -330,17 +332,23 @@ export class GameScene extends Phaser.Scene {
     // animação derivada da fase
     const ph = fishing.phase;
     if (ph !== this.lastPhase) {
-      if (ph === 'charging') this.animal.stop().setTexture(TEX.animal(id), 4); // preparar o lançamento
+      if (ph === 'charging') this.animal.stop();
       else if (ph === 'casting') this.animal.play(`${id}_cast`);
       else if (ph === 'reeling') this.animal.play(`${id}_reel`);
       this.lastPhase = ph;
     }
+    // a carregar: inclina-se mais para trás quanto maior a força
+    if (ph === 'charging') this.animal.setTexture(TEX.animal(id), ANIM_FRAMES.charge[fishing.power < 0.45 ? 0 : 1]);
     // nas restantes fases respira (depois de o lançamento acabar)
     const idleKey = `${id}_idle`;
     const cur = this.animal.anims.currentAnim?.key, playing = this.animal.anims.isPlaying;
     if (!['charging', 'casting', 'reeling'].includes(ph) && !(playing && (cur === idleKey || cur === `${id}_cast`))) {
       this.animal.play(idleKey);
     }
+
+    // a cana e a pata seguem a pose do corpo neste frame
+    const po = pawOffset(Number(this.animal.frame.name) || 0), base = pawOffset(0);
+    fishing.pawShift = { x: po.x - base.x, y: po.y - base.y };
 
     // cana (2 px: madeira clara por cima, escura por baixo)
     const b = fishing.rodBase(), tip = fishing.rodTip();
@@ -353,7 +361,7 @@ export class GameScene extends Phaser.Scene {
     const rx = Math.round(bx + Math.cos(fishing.rodA) * 9), ry = Math.round(by + Math.sin(fishing.rodA) * 9);
     g.fillStyle(0x222222); g.fillRect(rx - 1, ry + 1, 3, 3);
     g.fillStyle(0x888888); g.fillRect(rx, ry + 1, 1, 1);
-    this.paw.setPosition(Math.round(AX + PAW_OFFSET.x + Math.cos(fishing.rodA) * 3), Math.round(AY - 3 + PAW_OFFSET.y + bob + Math.sin(fishing.rodA) * 3));
+    this.paw.setPosition(Math.round(AX + po.x + Math.cos(fishing.rodA) * 3), Math.round(AY - 3 + po.y + bob + Math.sin(fishing.rodA) * 3));
 
     // linha e boia
     const bp = fishing.bobberPos();

@@ -19,6 +19,8 @@ Toda a arte e todo o som são gerados no próprio código. O projeto não tem im
 | Puxar o peixe | Carrega quando o marcador estiver na **zona verde** |
 | Fechar janelas | **Espaço** no cartão do peixe, **Esc** nas restantes |
 
+No **telemóvel** há um botão 🎣 grande por baixo do jogo: segura para ganhar força, larga para lançar e toca para fisgar e puxar. O Animal, a Música e o Som estão no menu ⚙️.
+
 1. **Lança.** Quanto mais longe, mais fundo desce o anzol. No fundo vês a profundidade e o teu **multiplicador de sorte**.
 2. **Espera** pela mordida. Se carregares antes do tempo, recolhes a linha.
 3. **Fisga** quando aparecer o **!**.
@@ -59,7 +61,7 @@ O progresso fica guardado no browser.
 
 ## Destaques técnicos
 
-- **Pixel art em código:** os 4 animais animados, os 18 peixes, os cenários, o céu, a água e uma fonte bitmap 5×7 são desenhados píxel a píxel e registados no `TextureManager` do Phaser. O jogo corre a 480×300 e é ampliado no ecrã.
+- **Pixel art em código:** os 4 animais com animação de corpo inteiro, os 18 peixes, os cenários, o céu, a água e uma fonte bitmap 5×7 são desenhados píxel a píxel e registados no `TextureManager` do Phaser. O jogo corre a 480×300 e é ampliado no ecrã.
 - **Banda sonora adaptativa em Web Audio:**
   - Tem quatro ambientes: Lago e Mar, cada um de dia e de noite.
   - A música é composta na hora a partir de um motivo, com transições a tempo.
@@ -82,13 +84,15 @@ O deploy no GitHub Pages é automático a cada push para o `main` (`.github/work
 
 ## Testes
 
-Os testes jogam a sério no browser com o [playwright-cli](https://www.npmjs.com/package/@playwright/cli): 49 testes do jogo e 18 da música.
+Os testes jogam a sério no browser com o [playwright-cli](https://www.npmjs.com/package/@playwright/cli): 49 testes do jogo, 18 da música e 19 em emulação de telemóvel.
 
 ```bash
 npm run dev
 playwright-cli open http://localhost:5173
 playwright-cli run-code --filename=tests/playtest.js
 playwright-cli run-code --filename=tests/music-test.js
+playwright-cli -s=mobile open --mobile http://localhost:5173
+playwright-cli -s=mobile run-code --filename=tests/mobile-test.js
 ```
 
 As capturas de ecrã ficam em `tests/screenshots/` e as amostras de música em `tests/audio/`.
