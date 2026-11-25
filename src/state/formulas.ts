@@ -21,11 +21,18 @@ export function darkness(t = save.time): number {
 }
 export const isNight = () => darkness() > 0.5;
 
+/** Sorte total: Amuleto + talento da Lontra + profundidade (0–1) a que o anzol chegou. */
+export const luck = (depth: number) => save.upg.sorte * 0.25 + (save.animal === 'lontra' ? 0.4 : 0) + depth * 0.8;
+/** Multiplicador mostrado no fundo: cada raridade acima de Comum pesa (1 + sorte/2)× mais por nível. */
+export const luckMult = (depth: number) => 1 + luck(depth) * 0.5;
+/** Profundidade em metros (para mostrar ao jogador). */
+export const depthMeters = (depth: number) => Math.max(1, Math.round(depth * 40));
+
 /** depth: 0–1, quão longe caiu o anzol em relação ao alcance máximo possível. */
 export function chooseFish(depth: number): Fish {
   const night = isNight();
   const pool = FISH.filter(f => f.zone === save.zone && (!f.night || night));
-  const L = save.upg.sorte * 0.25 + (save.animal === 'lontra' ? 0.4 : 0) + depth * 0.8;
+  const L = luck(depth);
   const tiers = [0, 1, 2, 3, 4].filter(t => pool.some(f => f.r === t));
   const ws = tiers.map(t => RAR[t].weight * Math.pow(1 + L * 0.5, t));
   let x = Math.random() * ws.reduce((a, b) => a + b, 0);

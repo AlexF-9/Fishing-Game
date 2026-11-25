@@ -1,4 +1,4 @@
-import { AX, AY, DOCK_END, ROD_LEN, WATER_Y } from '../config';
+import { AX, AY, DOCK_END, H, ROD_LEN, WATER_Y } from '../config';
 import type { Fish } from '../data/fish';
 import { RAR } from '../data/rarities';
 import { Emitter, float, notifyState } from '../state/events';
@@ -31,7 +31,12 @@ type Events = {
   cast: []; splash: []; bite: []; hit: []; miss: []; lose: []; blocked: [];
   ripple: [x: number, y: number, r: number, life: number];
   landed: [info: Landed];
+  /** O anzol chegou ao fundo (mostra-se o multiplicador de sorte). */
+  hookBottom: [];
 };
+
+/** Tempo (s) que o anzol demora a descer até à profundidade máxima. */
+const SINK_TIME = 1.2;
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -50,6 +55,8 @@ export class FishingController {
   clock = 0;
   cast = { t: 0, from: { x: 0, y: 0 } as Point, tx: 0, depth: 0 };
   reel: Reel | null = null;
+  /** Descida do anzol depois de a boia cair (0 = à superfície, 1 = no fundo). */
+  sink = 0;
 
   /** Devolve true quando há uma janela aberta (o jogo fica em pausa). */
   isPaused: () => boolean = () => false;
@@ -169,6 +176,13 @@ export class FishingController {
     this.clock += dt;
     if (this.isPaused()) return; // pausa enquanto há janelas abertas
 
+    // o anzol desce até ao fundo enquanto a linha está na água
+    if (this.phase === 'waiting' || this.phase === 'bite' || this.phase === 'reeling') {
+      const before = this.sink;
+      this.sink = this.phase === 'waiting' ? Math.min(1, this.sink + dt / SINK_TIME) : 1;
+      if (before < 1 && this.sink >= 1) this.events.emit('hookBottom');
+    }
+
     let target = -1.0;
     switch (this.phase) {
       case 'charging':
@@ -183,6 +197,7 @@ export class FishingController {
           this.cast.t = 1;
           this.phase = 'waiting';
           this.waitT = (2.5 + Math.random() * 4) * waitMult();
+          this.sink = 0;
           this.events.emit('ripple', this.cast.tx, WATER_Y + 2, 2, 1);
           this.events.emit('splash');
         }
@@ -216,6 +231,19 @@ export class FishingController {
       }
     }
     this.rodA += (target - this.rodA) * Math.min(1, dt * (this.phase === 'casting' ? 25 : 10));
+  }
+
+  /** Profundidade máxima do anzol (y) para este lançamento: mais longe = mais fundo. */
+  hookBottomY(): number { return WATER_Y + 12 + this.cast.depth * (H - WATER_Y - 32); }
+
+  /** Posição do anzol debaixo de água, ou null. Sobe com os acertos no minijogo. */
+  hookPos(): Point | null {
+    if (!['waiting', 'bite', 'reeling'].includes(this.phase)) return null;
+    const eased = 1 - Math.pow(1 - this.sink, 3);
+    let y = WATER_Y + 3 + (this.hookBottomY() - WATER_Y - 3) * eased;
+    if (this.phase === 'reeling' && this.reel) y -= (y - WATER_Y - 6) * (this.reel.hits / this.reel.need);
+    const sway = this.phase === 'bite' ? Math.sin(this.clock * 35) * 1.5 : Math.sin(this.clock * 1.7) * 0.8;
+    return { x: this.cast.tx + sway, y };
   }
 
   /** Posição da boia, ou null quando a linha está recolhida. */

@@ -75,6 +75,8 @@ export class GameScene extends Phaser.Scene {
   private paw!: Phaser.GameObjects.Image;
   private bobber!: Phaser.GameObjects.Image;
   private hook!: Phaser.GameObjects.Image;
+  /** Anzol debaixo de água (desce até ao fundo depois do lançamento). */
+  private deepHook!: Phaser.GameObjects.Image;
   private veil!: Phaser.GameObjects.Rectangle;
 
   private animalId: AnimalId | null = null;
@@ -146,6 +148,7 @@ export class GameScene extends Phaser.Scene {
     this.paw = this.add.image(0, 0, TEX.paw('gato'));
     this.bobber = this.add.image(0, 0, TEX.bobber).setOrigin(0.5, 0.6);
     this.hook = this.add.image(0, 0, TEX.hook).setOrigin(0.5, 0);
+    this.deepHook = this.add.image(0, 0, TEX.hook).setOrigin(0.5, 0).setVisible(false);
 
     this.veil = this.add.rectangle(0, 0, W, H, 0x080c28).setOrigin(0).setAlpha(0).setDepth(10);
 
@@ -314,7 +317,7 @@ export class GameScene extends Phaser.Scene {
     const id = save.animal;
     const show = !!id;
     this.animal.setVisible(show); this.paw.setVisible(show); this.rod.clear();
-    if (!id) { this.bobber.setVisible(false); this.hook.setVisible(false); return; }
+    if (!id) { this.bobber.setVisible(false); this.hook.setVisible(false); this.deepHook.setVisible(false); return; }
 
     if (id !== this.animalId) {
       this.animalId = id; this.lastPhase = null;
@@ -370,9 +373,18 @@ export class GameScene extends Phaser.Scene {
       this.bobber.setTint(hex(mixColor('#ffffff', '#c0c8e8', d)));
       this.hook.setVisible(false);
       if (d > 0.5) { g.fillStyle(0xff7878, 0.25); g.fillCircle(Math.round(bp.x), Math.round(bp.y) - 2, 5); }
+
+      // linha debaixo de água até ao anzol (pontilhada, mais apagada)
+      const hp = fishing.hookPos();
+      if (hp) {
+        let i = 0;
+        bresenham(bp.x, bp.y + 3, hp.x, hp.y, (qx, qy) => { if (i++ % 2 === 0) { g.fillStyle(lineCol, 0.45); g.fillRect(qx, qy, 1, 1); } });
+        this.deepHook.setVisible(true).setPosition(Math.round(hp.x), Math.round(hp.y)).setAlpha(0.9);
+      } else this.deepHook.setVisible(false);
     } else {
       bresenham(tx, ty, tx, ty + 22, (qx, qy) => { g.fillStyle(lineCol, 0.85); g.fillRect(qx, qy, 1, 1); });
       this.bobber.setVisible(false);
+      this.deepHook.setVisible(false);
       this.hook.setVisible(true).setPosition(Math.round(tx), Math.round(ty + 22));
     }
   }

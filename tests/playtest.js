@@ -88,6 +88,25 @@ async page => {
   ok('Selo RECORDE quando bate o peso', badges.includes('RECORDE') && !badges.includes('NOVO'), badges.trim());
   await page.keyboard.press('Space');
 
+  // ---------- 3b. Anzol desce ao fundo e mostra o multiplicador de sorte ----------
+  await setSave(base({ animal: 'lontra', upg: { cana: 0, linha: 0, isco: 0, sorte: 2, balde: 0, barco: 0 } }));
+  await page.keyboard.down('Space'); await sleep(800); await page.keyboard.up('Space');
+  await waitPhase(['waiting']);
+  ok('O anzol começa à superfície', (await ev(() => window.__pescaria.fishing.sink)) < 0.5);
+  await page.waitForFunction(() => window.__pescaria.fishing.sink >= 1, null, { timeout: 5000 }).catch(() => {});
+  await sleep(150);
+  const hk = await ev(() => {
+    const P = window.__pescaria, f = P.fishing, ui = P.game.scene.getScene('UI');
+    return { sink: f.sink, depth: f.cast.depth, label: ui.luckTxt.text, depthLabel: ui.depthTxt.text, vis: ui.luckTxt.visible, y: f.hookPos()?.y, bottom: f.hookBottomY() };
+  });
+  const expMult = 1 + (2 * 0.25 + 0.4 + hk.depth * 0.8) * 0.5;
+  ok('O anzol chega ao fundo do lançamento', hk.sink >= 1 && Math.abs(hk.y - hk.bottom) < 3, `y=${hk.y?.toFixed(1)} fundo=${hk.bottom.toFixed(1)}`);
+  ok('No fundo mostra a sorte (Amuleto 2 + Lontra + profundidade)', hk.vis && hk.label === `SORTE X${expMult.toFixed(1).replace('.', ',')}`, `${hk.label} | ${hk.depthLabel}`);
+  await shot('14-anzol-no-fundo');
+  await waitPhase(['bite']);
+  ok('O "!" continua a aparecer com o anzol no fundo', (await phase()) === 'bite');
+  await waitPhase(['idle'], 2000);
+
   // ---------- 4. Falhas ----------
   await page.keyboard.down('Space'); await sleep(400); await page.keyboard.up('Space');
   await waitPhase(['waiting']); await sleep(100);

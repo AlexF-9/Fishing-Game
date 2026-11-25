@@ -1,7 +1,9 @@
 # 🎣 Pescaria: o que já está feito
 
 **Projeto:** Phaser 3 + Vite + TypeScript, com o visual todo em pixel art gerado no código (sem imagens externas).
-**Página publicada (privada):** https://claude.ai/artifact/AVJ5amx4JW1zEhXVWYCjcv (versão 2, pixel art)
+**Jogar online (GitHub Pages):** https://alexf-9.github.io/Fishing-Game/ (atualiza sozinho a cada push para o `main`)
+**Código:** https://github.com/AlexF-9/Fishing-Game
+**Página publicada no Claude (privada):** https://claude.ai/artifact/AVJ5amx4JW1zEhXVWYCjcv
 **Versão antiga:** `pescaria.html` (um único ficheiro em Canvas), guardada como referência.
 
 ---
@@ -77,6 +79,12 @@ O jogo corre a 480×300 e é ampliado no ecrã (`pixelArt` e `roundPixels` ligad
 - **Texto dentro do jogo:** fonte pixel 5×7 gerada no código, com acentos, Ç e contorno.
 - **Cartão do peixe:** brilho da cor da raridade, raios nos Lendários e brilhos nos Épicos e Lendários. Antes do cartão aparecer, o peixe salta da água até ao animal.
 
+### Anzol até ao fundo e multiplicador de sorte (novo)
+- Depois do salpico, a boia fica à superfície e o anzol desce com uma linha pontilhada. Desce até à profundidade que o lançamento alcança: quanto mais longe, mais fundo.
+- Lá em baixo mostra a profundidade (por exemplo **13 M**) e a sorte total (por exemplo **SORTE X1,6**), com a cor da raridade a que essa sorte chega.
+- A sorte total soma o Amuleto, o talento da Lontra e a profundidade. É a mesma sorte que já decidia a raridade do peixe; a regra não mudou, só passou a ver-se.
+- No minijogo o anzol sobe a cada acerto.
+
 ### Banda sonora adaptativa (novo, `src/audio/`)
 É gerada em tempo real com Web Audio, sem ficheiros de som, em estilo chiptune / lo-fi.
 - **Ambientes:**
@@ -97,7 +105,7 @@ O jogo corre a 480×300 e é ampliado no ecrã (`pixelArt` e `roundPixels` ligad
 - **Testes e amostras:** `tests/music-test.js` tem 18 testes. As amostras de 10 s de cada ambiente estão em `tests/audio/`.
 
 ### Testes (playwright-cli, `tests/playtest.js`)
-**45/45 a passar**, a jogar em tempo real com o teclado. Passaram tanto no `npm run dev` como no build final. Cobrem:
+**49/49 a passar**, a jogar em tempo real com o teclado. Passaram tanto no `npm run dev` como no build final. Cobrem:
 - escolha de animal;
 - o ciclo completo de pesca, com os selos NOVO e RECORDE;
 - carregar cedo demais, não reagir ao `!` e falhar 3 vezes no minijogo;
@@ -116,6 +124,5 @@ As capturas de ecrã ficam em `tests/screenshots/`.
 ---
 
 ## ⏳ Ideias para depois
-- Anzol a descer até ao fundo e a mostrar o multiplicador de sorte.
 - Animação de "corpo inteiro" no lançamento (por agora a cabeça e a cana é que se mexem).
 - Controlos pensados para telemóvel (já dá para tocar no ecrã, mas o HUD ocupa duas linhas em ecrãs estreitos).

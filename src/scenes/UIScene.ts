@@ -5,6 +5,7 @@ import { AX, AY, W, WATER_Y } from '../config';
 import { RAR } from '../data/rarities';
 import { bus } from '../state/events';
 import { save } from '../state/save';
+import { depthMeters, luckMult } from '../state/formulas';
 import { hex } from '../systems/DayNight';
 import { fishing } from '../systems/FishingController';
 import { overlayOpen } from '../ui/dom';
@@ -23,6 +24,10 @@ export class UIScene extends Phaser.Scene {
   private reelTitle!: Phaser.GameObjects.BitmapText;
   private missTxt!: Phaser.GameObjects.BitmapText;
   private floats: Floater[] = [];
+  private depthTxt!: Phaser.GameObjects.BitmapText;
+  private luckTxt!: Phaser.GameObjects.BitmapText;
+  /** Tempo do "salto" do rótulo de sorte quando o anzol chega ao fundo. */
+  private pop = 0;
 
   constructor() { super('UI'); }
 
@@ -37,6 +42,10 @@ export class UIScene extends Phaser.Scene {
     this.forca = this.text(0, 0, 'FORÇA').setOrigin(0.5, 1);
     this.reelTitle = this.text(W / 2, 27, 'PUXA! Carrega na zona verde');
     this.missTxt = this.text(0, 0, '', '#ff8080').setOrigin(1, 0.5);
+
+    this.depthTxt = this.text(0, 0, '', '#cfe3ef').setOrigin(0, 0.5);
+    this.luckTxt = this.text(0, 0, '').setOrigin(0, 0.5);
+    fishing.events.on('hookBottom', () => { this.pop = 0.35; });
 
     bus.on('float', (s, x, y, color) => {
       // empilha textos que nasceriam em cima uns dos outros
@@ -111,6 +120,27 @@ export class UIScene extends Phaser.Scene {
         if (i < r.hits) { g.fillStyle(0x9af0a8); g.fillRect(cx - 2, cy - 2, 2, 2); }
       }
       this.missTxt.setText('✖'.repeat(r.miss) + '·'.repeat(3 - r.miss)).setPosition(bx + bw, by + bh + 10);
+    }
+
+    // profundidade e multiplicador de sorte, ao lado do anzol quando chega ao fundo
+    const hp = fishing.hookPos();
+    const showLuck = !!hp && fishing.sink >= 1;
+    this.depthTxt.setVisible(showLuck);
+    this.luckTxt.setVisible(showLuck);
+    if (showLuck && hp) {
+      this.pop = Math.max(0, this.pop - dt);
+      const mult = luckMult(fishing.cast.depth);
+      const tier = mult < 1.2 ? 0 : mult < 1.4 ? 1 : mult < 1.6 ? 2 : mult < 1.85 ? 3 : 4;
+      this.depthTxt.setText(fontText(`${depthMeters(fishing.cast.depth)} m`));
+      this.luckTxt.setText(fontText(`Sorte x${mult.toFixed(1).replace('.', ',')}`)).setTint(hex(RAR[tier].color));
+      const w = Math.max(this.depthTxt.width, this.luckTxt.width);
+      const right = hp.x + 8 + w < W - 4;
+      const x = Math.round(right ? hp.x + 8 : hp.x - 8 - w);
+      const y = Math.round(Math.min(hp.y, 300 - 16) - (this.pop > 0 ? Math.sin((this.pop / 0.35) * Math.PI) * 4 : 0));
+      this.depthTxt.setPosition(x, y - 4);
+      this.luckTxt.setPosition(x, y + 6);
+      // pequena moldura escura para ler bem sobre a água
+      g.fillStyle(0x0a1622, 0.55); g.fillRect(x - 3, y - 10, w + 5, 22);
     }
 
     // textos flutuantes

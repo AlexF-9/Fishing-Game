@@ -39,6 +39,7 @@ export function initUI(): void {
   ev.on('cast', sfx.cast);
   ev.on('splash', sfx.splash);
   ev.on('bite', sfx.bite);
+  ev.on('hookBottom', sfx.bottom);
   ev.on('hit', sfx.hit);
   ev.on('miss', sfx.miss);
   ev.on('blocked', sfx.miss);
