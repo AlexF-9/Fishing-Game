@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { FONT_KEY, fontText } from '../art/font';
 import { TEX } from '../art/registerAll';
-import { AX, AY, W, WATER_Y } from '../config';
+import { AX, AY, H, W, WATER_Y, WORLD_H } from '../config';
+import { view } from '../systems/view';
 import { RAR } from '../data/rarities';
 import { bus } from '../state/events';
 import { save } from '../state/save';
@@ -93,9 +94,13 @@ export class UIScene extends Phaser.Scene {
     }
 
     // "!" da mordida
+    // (com o ecrã a seguir o anzol, o "!" aparece em cima do anzol, onde o peixe mordeu)
     const bp = fishing.bobberPos();
-    this.bang.setVisible(ph === 'bite' && !!bp);
-    if (ph === 'bite' && bp) this.bang.setPosition(Math.round(bp.x), Math.round(bp.y - 10 - Math.abs(Math.sin(clock * 12)) * 4));
+    const hook = fishing.hookPos();
+    const deep = view.scrollY > 20 && !!hook;
+    const at = deep ? hook : bp;
+    this.bang.setVisible(ph === 'bite' && !!at);
+    if (ph === 'bite' && at) this.bang.setPosition(Math.round(at.x), Math.round(at.y - view.scrollY - 10 - Math.abs(Math.sin(clock * 12)) * 4));
 
     // minijogo
     const r = fishing.reel;
@@ -123,25 +128,37 @@ export class UIScene extends Phaser.Scene {
       this.missTxt.setText('✖'.repeat(r.miss) + '·'.repeat(3 - r.miss)).setPosition(bx + bw, by + bh + 10);
     }
 
-    // profundidade e multiplicador de sorte, ao lado do anzol quando chega ao fundo
-    const hp = fishing.hookPos();
-    const showLuck = !!hp && fishing.sink >= 1;
-    this.depthTxt.setVisible(showLuck);
-    this.luckTxt.setVisible(showLuck);
-    if (showLuck && hp) {
+    // profundidade (a contar enquanto o anzol desce) e, no fundo, o multiplicador de sorte
+    const hp = hook;
+    const atBottom = !!hp && fishing.sink >= 1;
+    this.depthTxt.setVisible(!!hp && ph !== 'reeling');
+    this.luckTxt.setVisible(atBottom && ph !== 'reeling');
+    if (hp && ph !== 'reeling') {
       this.pop = Math.max(0, this.pop - dt);
-      const mult = luckMult(fishing.cast.depth);
-      const tier = mult < 1.2 ? 0 : mult < 1.4 ? 1 : mult < 1.6 ? 2 : mult < 1.85 ? 3 : 4;
-      this.depthTxt.setText(fontText(`${depthMeters(fishing.cast.depth)} m`));
-      this.luckTxt.setText(fontText(`Sorte x${mult.toFixed(1).replace('.', ',')}`)).setTint(hex(RAR[tier].color));
-      const w = Math.max(this.depthTxt.width, this.luckTxt.width);
+      const meters = atBottom ? depthMeters(fishing.cast.depth) : depthMeters(fishing.currentDepth());
+      this.depthTxt.setText(fontText(`${meters} m`));
+      let w = this.depthTxt.width;
+      if (atBottom) {
+        const mult = luckMult(fishing.cast.depth);
+        const tier = mult < 1.2 ? 0 : mult < 1.4 ? 1 : mult < 1.6 ? 2 : mult < 1.85 ? 3 : 4;
+        this.luckTxt.setText(fontText(`Sorte x${mult.toFixed(1).replace('.', ',')}`)).setTint(hex(RAR[tier].color));
+        w = Math.max(w, this.luckTxt.width);
+      }
+      const sy = hp.y - view.scrollY; // posição no ecrã (o mundo pode estar deslizado)
       const right = hp.x + 8 + w < W - 4;
       const x = Math.round(right ? hp.x + 8 : hp.x - 8 - w);
-      const y = Math.round(Math.min(hp.y, 300 - 16) - (this.pop > 0 ? Math.sin((this.pop / 0.35) * Math.PI) * 4 : 0));
-      this.depthTxt.setPosition(x, y - 4);
+      const y = Math.round(Math.min(sy, 300 - 16) - (this.pop > 0 ? Math.sin((this.pop / 0.35) * Math.PI) * 4 : 0));
+      this.depthTxt.setPosition(x, atBottom ? y - 4 : y);
       this.luckTxt.setPosition(x, y + 6);
       // pequena moldura escura para ler bem sobre a água
-      g.fillStyle(0x0a1622, 0.55); g.fillRect(x - 3, y - 10, w + 5, 22);
+      g.fillStyle(0x0a1622, 0.55); g.fillRect(x - 3, atBottom ? y - 10 : y - 6, w + 5, atBottom ? 22 : 12);
+    }
+
+    // régua de profundidade à direita enquanto o ecrã está debaixo de água
+    if (view.scrollY > 4) {
+      const top = 70, bot = 280, maxY = WORLD_H - H;
+      g.fillStyle(0x000000, 0.45); g.fillRect(W - 10, top - 2, 5, bot - top + 4);
+      g.fillStyle(0x7fc0e8, 0.8); g.fillRect(W - 9, top + Math.round((bot - top) * (view.scrollY / maxY)), 3, 6);
     }
 
     // textos flutuantes

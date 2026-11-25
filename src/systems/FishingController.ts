@@ -1,8 +1,8 @@
-import { AX, AY, DOCK_END, H, ROD_LEN, WATER_Y } from '../config';
+import { AX, AY, DEPTH_PX, DOCK_END, ROD_LEN, WATER_Y, WORLD_H } from '../config';
 import type { Fish } from '../data/fish';
 import { RAR } from '../data/rarities';
 import { Emitter, float, notifyState } from '../state/events';
-import { cap, chooseFish, maxDist, valueMult, waitMult, zoneMult } from '../state/formulas';
+import { cap, chooseFish, maxDist, sinkerBonus, valueMult, waitMult, zoneMult } from '../state/formulas';
 import { persist, save } from '../state/save';
 
 export type Phase = 'idle' | 'charging' | 'casting' | 'waiting' | 'bite' | 'reeling' | 'result';
@@ -35,8 +35,8 @@ type Events = {
   hookBottom: [];
 };
 
-/** Tempo (s) que o anzol demora a descer até à profundidade máxima. */
-const SINK_TIME = 1.2;
+/** Tempo (s) que o anzol demora a descer: mais fundo demora mais (0,6 s a 1,8 s). */
+const sinkTime = (depth: number) => 0.6 + depth * 0.6;
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
@@ -109,7 +109,8 @@ export class FishingController {
     if (this.phase !== 'charging') return;
     const tip = this.rodTip();
     const dist = Math.max(20, this.power * maxDist());
-    this.cast = { t: 0, from: { x: tip.x, y: tip.y }, tx: DOCK_END + 10 + dist, depth: dist / maxDist(5) };
+    // profundidade = distância (0–1 do alcance máximo) + Chumbada (afunda mais)
+    this.cast = { t: 0, from: { x: tip.x, y: tip.y }, tx: DOCK_END + 10 + dist, depth: dist / maxDist(5) + sinkerBonus() };
     this.phase = 'casting';
     this.rodA = -0.55;
     this.events.emit('cast');
@@ -185,7 +186,7 @@ export class FishingController {
     // o anzol desce até ao fundo enquanto a linha está na água
     if (this.phase === 'waiting' || this.phase === 'bite' || this.phase === 'reeling') {
       const before = this.sink;
-      this.sink = this.phase === 'waiting' ? Math.min(1, this.sink + dt / SINK_TIME) : 1;
+      this.sink = this.phase === 'waiting' ? Math.min(1, this.sink + dt / sinkTime(this.cast.depth)) : 1;
       if (before < 1 && this.sink >= 1) this.events.emit('hookBottom');
     }
 
@@ -210,7 +211,8 @@ export class FishingController {
         break;
       case 'waiting':
         target = -0.7;
-        this.waitT -= dt;
+        // os peixes só mordem quando o anzol chega ao fundo
+        if (this.sink >= 1) this.waitT -= dt;
         if (this.waitT <= 0) {
           this.phase = 'bite'; this.biteT = 1.0;
           this.events.emit('bite');
@@ -240,7 +242,13 @@ export class FishingController {
   }
 
   /** Profundidade máxima do anzol (y) para este lançamento: mais longe = mais fundo. */
-  hookBottomY(): number { return WATER_Y + 12 + this.cast.depth * (H - WATER_Y - 32); }
+  hookBottomY(): number { return Math.min(WORLD_H - 44, WATER_Y + 12 + this.cast.depth * DEPTH_PX); }
+
+  /** Profundidade atual do anzol (unidades de profundidade), enquanto desce. */
+  currentDepth(): number {
+    const hp = this.hookPos();
+    return hp ? Math.max(0, (hp.y - WATER_Y - 3) / DEPTH_PX) : 0;
+  }
 
   /** Posição do anzol debaixo de água, ou null. Sobe com os acertos no minijogo. */
   hookPos(): Point | null {

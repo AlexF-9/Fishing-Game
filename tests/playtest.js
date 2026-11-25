@@ -107,6 +107,29 @@ async page => {
   ok('O "!" continua a aparecer com o anzol no fundo', (await phase()) === 'bite');
   await waitPhase(['idle'], 2000);
 
+  // ---------- 3c. Chumbada: o anzol vai mais fundo e o ecrã segue-o ----------
+  await setSave(base({ upg: { cana: 0, linha: 5, chumbo: 5, isco: 0, sorte: 0, balde: 0, barco: 0 } }));
+  await page.keyboard.down('Space');
+  await page.waitForFunction(() => window.__pescaria.fishing.power > 0.93, null, { timeout: 4000 }).catch(() => {});
+  await page.keyboard.up('Space');
+  await waitPhase(['waiting']);
+  await page.waitForFunction(() => window.__pescaria.fishing.sink >= 1, null, { timeout: 6000 }).catch(() => {});
+  await sleep(1200);
+  const deep = await ev(() => {
+    const P = window.__pescaria, f = P.fishing, cam = P.game.scene.getScene('Game').cameras.main, ui = P.game.scene.getScene('UI');
+    return { depth: f.cast.depth, y: f.hookPos()?.y, scroll: cam.scrollY, ph: f.phase, label: ui.depthTxt.text };
+  });
+  ok('Chumbada 5 faz o anzol ir além da distância', deep.depth > 1.8, `profundidade=${deep.depth.toFixed(2)} (${deep.label})`);
+  ok('O anzol desce abaixo do ecrã inicial', deep.y > 300, `y=${deep.y?.toFixed(0)}`);
+  ok('O ecrã desce atrás do anzol', deep.scroll > 150 && deep.y - deep.scroll > 60 && deep.y - deep.scroll < 285, `scrollY=${deep.scroll.toFixed(0)}, anzol no ecrã a y=${(deep.y - deep.scroll).toFixed(0)}`);
+  await shot('22-anzol-fundo-chumbada');
+  ok('Peixe só morde com o anzol no fundo', await waitPhase(['bite']));
+  const bang = await ev(() => { const u = window.__pescaria.game.scene.getScene('UI').bang; return { v: u.visible, y: u.y }; });
+  ok('O "!" aparece no ecrã junto ao anzol', bang.v && bang.y > 20 && bang.y < 300, `y=${Math.round(bang.y)}`);
+  await waitPhase(['idle'], 2000);
+  await sleep(1500);
+  ok('Depois o ecrã volta à superfície', (await ev(() => window.__pescaria.game.scene.getScene('Game').cameras.main.scrollY)) < 2);
+
   // ---------- 4. Falhas ----------
   await page.keyboard.down('Space'); await sleep(400); await page.keyboard.up('Space');
   await waitPhase(['waiting']); await sleep(100);
@@ -133,7 +156,7 @@ async page => {
   // ---------- 6. Loja ----------
   await setSave(base({ coins: 5000 }));
   await page.click('#bShop');
-  ok('Loja abre com 6 upgrades', (await page.locator('.shopRow').count()) === 6);
+  ok('Loja abre com 7 upgrades (inclui a Chumbada)', (await page.locator('.shopRow').count()) === 7 && await page.isVisible('.shopRow[data-upg=chumbo]'));
   await page.click('.shopRow[data-upg=cana] button');
   ok('Comprar Cana: nível 1 e 50 moedas gastas', (await ev(() => window.__pescaria.save.upg.cana)) === 1 && (await page.textContent('#hCoins')) === '🪙 4950');
   ok('Preço da Cana sobe para o nível seguinte', (await page.textContent('.shopRow[data-upg=cana] button')).includes('105'));

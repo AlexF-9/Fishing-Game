@@ -25,7 +25,7 @@ export interface SaveData {
 export const newSave = (): SaveData => ({
   animal: null,
   coins: 0,
-  upg: { cana: 0, linha: 0, isco: 0, sorte: 0, balde: 0, barco: 0 },
+  upg: { cana: 0, linha: 0, chumbo: 0, isco: 0, sorte: 0, balde: 0, barco: 0 },
   book: {},
   bucket: [],
   zone: 'lago',

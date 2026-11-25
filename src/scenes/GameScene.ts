@@ -2,10 +2,11 @@ import Phaser from 'phaser';
 import { ANIM_FRAMES, pawOffset } from '../art/animals';
 import { bresenham } from '../art/pixel';
 import { TEX } from '../art/registerAll';
-import { BOAT_X, BOAT_Y, DOCK_Y, LH_LAMP, LH_X } from '../art/scenery';
+import { BED_Y, BOAT_X, BOAT_Y, DOCK_Y, LH_LAMP, LH_X } from '../art/scenery';
 import { fishKey } from '../art/fish';
 import { FISH } from '../data/fish';
-import { AX, AY, DOCK_END, H, W, WATER_Y } from '../config';
+import { AX, AY, DOCK_END, H, W, WATER_Y, WORLD_H } from '../config';
+import { view } from '../systems/view';
 import type { AnimalId } from '../data/animals';
 import { darkness } from '../state/formulas';
 import { persist, save } from '../state/save';
@@ -62,6 +63,8 @@ export class GameScene extends Phaser.Scene {
   private beam!: Phaser.GameObjects.Graphics;
   private boat!: Phaser.GameObjects.Image;
   private lakeFg: Phaser.GameObjects.Image[] = [];
+  private lakeBed!: Phaser.GameObjects.Image;
+  private seaBed!: Phaser.GameObjects.Image;
   /** Elementos de cenário que escurecem à noite. */
   private tinted: Phaser.GameObjects.Image[] = [];
 
@@ -120,9 +123,13 @@ export class GameScene extends Phaser.Scene {
     this.tinted.push(isl, lh);
 
     // água
-    this.waterTex = this.textures.createCanvas('water', W, H - WATER_Y)!;
+    // a água vai até ao fundo (o ecrã desce atrás do anzol)
+    this.waterTex = this.textures.createCanvas('water', W, WORLD_H - WATER_Y)!;
     this.add.image(0, WATER_Y, 'water').setOrigin(0);
-    for (let i = 0; i < 7; i++) {
+    this.lakeBed = this.add.image(0, BED_Y, TEX.lakeBed).setOrigin(0);
+    this.seaBed = this.add.image(0, BED_Y, TEX.seaBed).setOrigin(0);
+    this.tinted.push(this.lakeBed, this.seaBed);
+    for (let i = 0; i < 12; i++) {
       const img = this.add.image(0, 0, fishKey('carpa')).setTintFill(0x0a1622).setAlpha(0.28);
       const s: Swimmer = { img, v: 0 };
       this.resetSwimmer(s, true);
@@ -151,7 +158,8 @@ export class GameScene extends Phaser.Scene {
     this.hook = this.add.image(0, 0, TEX.hook).setOrigin(0.5, 0);
     this.deepHook = this.add.image(0, 0, TEX.hook).setOrigin(0.5, 0).setVisible(false);
 
-    this.veil = this.add.rectangle(0, 0, W, H, 0x080c28).setOrigin(0).setAlpha(0).setDepth(10);
+    this.veil = this.add.rectangle(0, 0, W, H, 0x080c28).setOrigin(0).setAlpha(0).setDepth(10).setScrollFactor(0);
+    this.cameras.main.setBounds(0, 0, W, WORLD_H);
 
     fishing.events.on('ripple', (x, y, r, life) => this.ripples.push({ x, y, r, life }));
     fishing.events.on('splash', () => this.splash(fishing.cast.tx, WATER_Y, 12));
@@ -191,14 +199,32 @@ export class GameScene extends Phaser.Scene {
     s.v = (8 + Math.random() * 15) * dir;
     s.img.setTexture(fishKey(f.id)).setScale(Math.random() < 0.3 ? 1 : 0.5).setFlipX(dir < 0);
     s.img.x = anyX ? DOCK_END + Math.random() * (W - DOCK_END) : dir > 0 ? DOCK_END - 20 : W + 20;
-    s.img.y = Math.round(WATER_Y + 25 + Math.random() * (H - WATER_Y - 40));
+    // espalhados por toda a profundidade, até perto do fundo
+    s.img.y = Math.round(WATER_Y + 25 + Math.random() * (BED_Y + 10 - WATER_Y - 25));
+    // os peixes grandes andam mais fundo
+    if (s.img.y > WATER_Y + 220) s.img.setScale(1);
+  }
+
+  /**
+   * A câmara desce atrás do anzol enquanto ele está na água e volta à superfície
+   * quando a linha sai (o anzol sobe com os acertos no minijogo).
+   */
+  private followHook(dt: number): void {
+    const cam = this.cameras.main;
+    const hp = fishing.hookPos();
+    const target = hp ? Phaser.Math.Clamp(hp.y - H * 0.55, 0, WORLD_H - H) : 0;
+    const speed = hp ? 3.5 : 5;
+    const y = cam.scrollY + (target - cam.scrollY) * Math.min(1, dt * speed);
+    cam.scrollY = Math.abs(target - y) < 0.5 ? target : y;
+    view.scrollY = Math.round(cam.scrollY);
   }
 
   private paintSkyAndWater(): void {
     const sky = skyColors();
     paintBands(this.skyTex, sky.top, sky.bottom, 12);
     const wc = waterColors(save.zone === 'mar');
-    paintBands(this.waterTex, wc.top, wc.bottom, 8, mixColor(wc.top, '#ffffff', 0.35));
+    // mais escura à medida que desce
+    paintBands(this.waterTex, wc.top, mixColor(wc.bottom, '#02060c', 0.55), 14, mixColor(wc.top, '#ffffff', 0.35));
   }
 
   update(_t: number, deltaMs: number): void {
@@ -233,6 +259,7 @@ export class GameScene extends Phaser.Scene {
     if (this.saveTimer > 5) { this.saveTimer = 0; persist(); }
     updTime();
     syncAction(fishing.phase);
+    this.followHook(dt);
     this.drawWorld();
   }
 
@@ -264,6 +291,8 @@ export class GameScene extends Phaser.Scene {
     this.sea.setVisible(mar);
     this.boat.setVisible(mar);
     for (const img of this.lakeFg) img.setVisible(!mar);
+    this.lakeBed.setVisible(!mar);
+    this.seaBed.setVisible(mar);
     for (const img of this.tinted) img.setTint(sceneTint);
 
     // farol

@@ -105,7 +105,7 @@ O jogo corre a 480×300 e é ampliado no ecrã (`pixelArt` e `roundPixels` ligad
 - **Testes e amostras:** `tests/music-test.js` tem 18 testes. As amostras de 10 s de cada ambiente estão em `tests/audio/`.
 
 ### Testes (playwright-cli, `tests/playtest.js`)
-**49/49 a passar**, a jogar em tempo real com o teclado. Passaram tanto no `npm run dev` como no build final. Cobrem:
+**55/55 a passar**, a jogar em tempo real com o teclado. Passaram tanto no `npm run dev` como no build final. Cobrem:
 - escolha de animal;
 - o ciclo completo de pesca, com os selos NOVO e RECORDE;
 - carregar cedo demais, não reagir ao `!` e falhar 3 vezes no minijogo;
@@ -142,3 +142,14 @@ As capturas de ecrã ficam em `tests/screenshots/`.
 - **Vibração:** o telemóvel vibra na mordida, nos acertos e ao apanhar o peixe (Android; o iOS não suporta).
 - **Textos:** os textos de ajuda e a dica no jogo mudam para "toca/segura" em ecrãs táteis.
 - **Testes:** `tests/mobile-test.js` corre 19 testes em emulação de telemóvel (`playwright-cli -s=mobile open --mobile …`).
+
+### Chumbada e ecrã a seguir o anzol
+- **Chumbada ⚓ na loja:** é um upgrade novo com 5 níveis (80 moedas no nível 1). Cada nível faz o anzol afundar mais 8 m do que a distância do lançamento permite, até 80 m com Linha e Chumbada no máximo. Mais fundo dá mais sorte, porque a profundidade já contava para a sorte.
+- **Câmara:** o mundo agora continua por baixo de água até ao fundo, com lodo, pedras e juncos no Lago, e areia, corais, algas, conchas e uma estrela-do-mar no Mar. As estacas do cais descem até ao fundo.
+  - O ecrã desce atrás do anzol enquanto ele afunda e mostra os metros a contar.
+  - No fundo aparece a sorte.
+  - O "!" da mordida aparece junto ao anzol.
+  - No minijogo o ecrã sobe com o anzol a cada acerto, e depois volta à superfície.
+  - Uma régua à direita mostra a que profundidade está o ecrã.
+- **Mordida:** os peixes só mordem depois de o anzol chegar ao fundo. A descida demora entre 0,6 s e 1,8 s, conforme a profundidade.
+- **Peixes do fundo:** os peixes em silhueta nadam a todas as profundidades, e os maiores andam mais fundo.

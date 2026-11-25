@@ -21,7 +21,7 @@ Toda a arte e todo o som são gerados no próprio código. O projeto não tem im
 
 No **telemóvel** há um botão 🎣 grande por baixo do jogo: segura para ganhar força, larga para lançar e toca para fisgar e puxar. O Animal, a Música e o Som estão no menu ⚙️.
 
-1. **Lança.** Quanto mais longe, mais fundo desce o anzol. No fundo vês a profundidade e o teu **multiplicador de sorte**.
+1. **Lança.** Quanto mais longe, mais fundo desce o anzol, e o ecrã desce atrás dele até ao fundo do lago ou do mar. Lá em baixo vês a profundidade e o teu **multiplicador de sorte**.
 2. **Espera** pela mordida. Se carregares antes do tempo, recolhes a linha.
 3. **Fisga** quando aparecer o **!**.
 4. **Puxa:** acerta 3 vezes na zona verde (4 nos peixes Épicos e Lendários). Se falhares 3 vezes, o peixe foge.
@@ -50,6 +50,7 @@ Há 18 peixes em 5 raridades: Comum, Incomum, Raro, Épico e Lendário.
 |---|---|---|
 | 🎣 Cana | Zona verde +12% por nível | 5 |
 | 🧵 Linha | Lançamento mais longe | 5 |
+| ⚓ Chumbada | O anzol afunda +8 m por nível, além da distância | 5 |
 | 🪱 Isco | Espera −12% por nível | 5 |
 | 🍀 Amuleto da Sorte | +25% de sorte por nível | 5 |
 | 🪣 Balde | +3 peixes por nível | 5 |
@@ -84,7 +85,7 @@ O deploy no GitHub Pages é automático a cada push para o `main` (`.github/work
 
 ## Testes
 
-Os testes jogam a sério no browser com o [playwright-cli](https://www.npmjs.com/package/@playwright/cli): 49 testes do jogo, 18 da música e 19 em emulação de telemóvel.
+Os testes jogam a sério no browser com o [playwright-cli](https://www.npmjs.com/package/@playwright/cli): 55 testes do jogo, 18 da música e 19 em emulação de telemóvel.
 
 ```bash
 npm run dev

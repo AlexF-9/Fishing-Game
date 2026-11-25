@@ -1,4 +1,4 @@
-import { AY, DOCK_END, W, WATER_Y } from '../config';
+import { AY, DOCK_END, W, WATER_Y, WORLD_H } from '../config';
 import { PixelCanvas, rng, shade } from './pixel';
 
 // Cenários em pixel art. As coordenadas das texturas estão pensadas para o mundo de 480×300.
@@ -62,16 +62,21 @@ export function pine(big: boolean): PixelCanvas {
 /** Cais de madeira. Colocar em (0, AY - 5). */
 export const DOCK_Y = AY - 5;
 export function dock(): PixelCanvas {
-  const w = DOCK_END + 4, h = 52, p = new PixelCanvas(w, h);
+  // as estacas descem até ao fundo do lago (o ecrã desce atrás do anzol)
+  const w = DOCK_END + 4, h = BED_Y + O + 10 - DOCK_Y, p = new PixelCanvas(w, h);
   const waterRow = WATER_Y - DOCK_Y;
-  // estacas
+  const r = rng(23);
   for (const x of [14, 58, 102, 124]) {
     p.rect(x, 8, 6, h - 8, WOOD_D);
     p.rect(x, 8, 1, h - 8, shade(WOOD_D, 0.15));
     p.rect(x + 5, 8, 1, h - 8, WOOD_DD);
-    // parte molhada abaixo da água
+    // parte molhada abaixo da água, com limos
     p.dither(x, waterRow, 6, h - waterRow, '#3a3a2a');
     p.rect(x, waterRow, 6, 1, '#d8eef7');
+    for (let i = 0; i < 10; i++) {
+      const y = waterRow + 20 + Math.floor(r() * (h - waterRow - 30));
+      p.rect(x + (r() < 0.5 ? 0 : 4), y, 2, 2 + Math.floor(r() * 3), '#3f6a3a');
+    }
   }
   // tábuas
   p.rect(0, 1, w - 2, 7, WOOD);
@@ -79,6 +84,57 @@ export function dock(): PixelCanvas {
   p.rect(0, 1, w - 2, 1, shade(WOOD, 0.12));
   p.rect(0, 8, w - 2, 2, WOOD_D);
   for (let x = 0; x < w - 2; x += 15) { p.rect(x, 1, 1, 7, WOOD_D); p.px(x + 3, 4, WOOD_DD); p.px(x + 10, 3, WOOD_DD); }
+  return p;
+}
+
+// ---------- Fundo (onde o anzol chega com a Chumbada) ----------
+
+/** Linha onde começa o fundo. */
+export const BED_Y = WORLD_H - 68;
+/** Espaço por cima do chão na textura do fundo (para as algas e corais crescerem). */
+const O = 24;
+
+/** Fundo do lago: lodo, pedras, juncos e algas. Colocar em (0, BED_Y). */
+export function lakeBed(): PixelCanvas {
+  const h = WORLD_H - BED_Y, p = new PixelCanvas(W, h), r = rng(31);
+  for (let x = 0; x < W; x++) {
+    const top = Math.round(O + 6 + Math.sin(x / 37) * 3 + Math.sin(x / 11) * 1.5);
+    for (let y = top; y < h; y++) p.px(x, y, y < top + 2 ? '#7a6a45' : (x + y) % 5 === 0 ? '#4a3f28' : '#5c4e31');
+  }
+  for (let i = 0; i < 18; i++) {
+    const x = Math.floor(r() * W), y = O + 8 + Math.floor(r() * 6), s = 2 + Math.floor(r() * 3);
+    p.ellipse(x, y, s + 1, s, '#6f7480'); p.px(x - 1, y - s + 1, '#9aa0aa');
+  }
+  for (let i = 0; i < 14; i++) {
+    const x = Math.floor(r() * W), tall = 8 + Math.floor(r() * 10);
+    for (let y = 0; y < tall; y++) p.px(x + Math.round(Math.sin(y / 2 + x) * 1.2), O + 8 - y, y % 3 ? '#3f7a46' : '#5c9a5a');
+  }
+  return p;
+}
+
+/** Fundo do mar: areia, corais, algas, conchas e uma estrela-do-mar. Colocar em (0, BED_Y). */
+export function seaBed(): PixelCanvas {
+  const h = WORLD_H - BED_Y, p = new PixelCanvas(W, h), r = rng(57);
+  for (let x = 0; x < W; x++) {
+    const top = Math.round(O + 7 + Math.sin(x / 45) * 3 + Math.sin(x / 15) * 1);
+    for (let y = top; y < h; y++) p.px(x, y, y < top + 2 ? '#d9c79a' : (x * 3 + y) % 7 === 0 ? '#b8a173' : '#c9b385');
+  }
+  // algas compridas
+  for (let i = 0; i < 9; i++) {
+    const x = 20 + Math.floor(r() * (W - 40)), tall = 14 + Math.floor(r() * 16);
+    for (let y = 0; y < tall; y++) { const xx = x + Math.round(Math.sin(y / 3 + i) * 2); p.px(xx, O + 9 - y, '#2f7a5a'); p.px(xx + 1, O + 9 - y, y % 2 ? '#3f9a6a' : '#2f7a5a'); }
+  }
+  // corais
+  for (let i = 0; i < 7; i++) {
+    const x = Math.floor(r() * W), c = ['#e86a8a', '#f09a4a', '#c95ad0'][i % 3];
+    p.rect(x, O + 2, 2, 8, c);
+    p.rect(x - 3, O + 4, 3, 2, c); p.rect(x - 3, O + 1, 2, 3, c);
+    p.rect(x + 2, O + 3, 3, 2, c); p.rect(x + 4, O, 2, 3, c);
+  }
+  // conchas e estrela-do-mar
+  for (let i = 0; i < 10; i++) { const x = Math.floor(r() * W); p.ellipse(x, O + 12, 2, 1, '#f4e6d0'); p.px(x, O + 11, '#e0c8a8'); }
+  const sx = 300;
+  for (const [dx, dy] of [[0, -3], [-3, -1], [3, -1], [-2, 2], [2, 2], [0, 0], [0, -1], [-1, 0], [1, 0]]) p.px(sx + dx, O + 12 + dy, '#f08a4a');
   return p;
 }
 

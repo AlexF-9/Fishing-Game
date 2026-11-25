@@ -10,7 +10,7 @@ import * as S from './scenery';
 /** Chaves estáveis de todas as texturas geradas. */
 export const TEX = {
   hillsFar: 'hills_far', hillsNear: 'hills_near', pineBig: 'pine_big', pineSmall: 'pine_small',
-  dock: 'dock', bucket: 'bucket', boat: 'boat', islands: 'islands', lighthouse: 'lighthouse',
+  dock: 'dock', bucket: 'bucket', lakeBed: 'lake_bed', seaBed: 'sea_bed', boat: 'boat', islands: 'islands', lighthouse: 'lighthouse',
   lampGlow: 'lamp_glow', sunGlow: 'sun_glow', sun: 'sun', moon: 'moon', starSmall: 'star_s', starBig: 'star_b',
   wave: 'wave', bobber: 'bobber', hook: 'hook', bang: 'bang',
   cloud: (i: number) => `cloud_${i}`,
@@ -31,6 +31,8 @@ export function registerAll(scene: Phaser.Scene): void {
   add(scene, TEX.pineBig, S.pine(true));
   add(scene, TEX.pineSmall, S.pine(false));
   add(scene, TEX.dock, S.dock());
+  add(scene, TEX.lakeBed, S.lakeBed());
+  add(scene, TEX.seaBed, S.seaBed());
   add(scene, TEX.bucket, S.bucket());
   add(scene, TEX.boat, S.boat());
   add(scene, TEX.islands, S.farIslands());
