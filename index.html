@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="claude:viewport-fit-sides" content="cover">
+  <title>Pescaria</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎣</text></svg>">
+</head>
+<body>
+<div id="wrap">
+  <div id="hud">
+    <span class="pill" id="hAnimal">🐱 Gato</span>
+    <span class="pill" id="hCoins">🪙 0</span>
+    <span class="pill" id="hBucket">🪣 0/5</span>
+    <span class="pill" id="hTime">☀️ Dia</span>
+    <span class="pill" id="hZone">🏞️ Lago</span>
+    <span class="spacer"></span>
+    <button id="bSell">Vender</button>
+    <button class="sec" id="bShop">🛒 Loja</button>
+    <button class="sec" id="bBook">📖 Livro</button>
+    <button class="sec" id="bZone" style="display:none">⛵ Mar</button>
+    <button class="ghost" id="bAnimal">🐾 Animal</button>
+    <button class="ghost" id="bMusic" title="Música">🎵</button>
+    <button class="ghost" id="bMute" title="Som (tudo)">🔊</button>
+  </div>
+
+  <div id="stage">
+    <!-- O Phaser insere aqui o canvas -->
+
+    <!-- Escolha de animal -->
+    <div class="overlay" id="ovSelect">
+      <div class="card">
+        <h2>Escolhe o teu pescador</h2>
+        <p class="sub">Cada animal tem um talento especial. Podes trocar mais tarde sem perder o progresso.</p>
+        <div id="animals"></div>
+        <div class="row">
+          <button class="ghost" id="bReset">Recomeçar do zero</button>
+          <button class="sec" id="bSelClose">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loja -->
+    <div class="overlay" id="ovShop">
+      <div class="card">
+        <h2>🛒 Loja de Upgrades</h2>
+        <p class="sub" id="shopCoins"></p>
+        <div id="shopList"></div>
+        <div class="row"><span></span><button class="sec" data-close>Fechar</button></div>
+      </div>
+    </div>
+
+    <!-- Livro -->
+    <div class="overlay" id="ovBook">
+      <div class="card">
+        <h2>📖 Livro de Peixes</h2>
+        <p class="sub" id="bookCount"></p>
+        <div id="bookGrid"></div>
+        <div class="row"><span></span><button class="sec" data-close>Fechar</button></div>
+      </div>
+    </div>
+
+    <!-- Peixe apanhado -->
+    <div class="overlay" id="ovCatch">
+      <div class="card" id="catchCard">
+        <div id="catchRar"></div>
+        <canvas id="catchCv" width="300" height="160"></canvas>
+        <h2 id="catchName"></h2>
+        <div id="catchBadges"></div>
+        <p id="catchInfo" style="margin:6px 0 12px"></p>
+        <button id="bCatchOk">Continuar <small>(Espaço)</small></button>
+      </div>
+    </div>
+  </div>
+
+  <div id="help">
+    Mantém <kbd>Espaço</kbd> (ou carrega no ecrã) para ganhar força e larga para lançar ·
+    Quando aparecer <b>!</b> carrega rápido ·
+    No minijogo carrega quando o marcador estiver na <b style="color:#7be07b">zona verde</b>
+  </div>
+</div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

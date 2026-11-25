@@ -1,0 +1,60 @@
+:root{
+  --bg:#0e2233; --panel:#fff8ec; --ink:#2b2118; --muted:#7a6a58;
+  --accent:#e8743b; --accentDark:#a84e22; --teal:#2f8f83; --tealDark:#1d5e56;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif}
+body{display:flex;justify-content:center;min-height:100vh}
+#wrap{width:100%;max-width:1000px;padding-block:12px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+#hud{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:8px}
+.pill{background:var(--panel);border-radius:999px;padding:7px 14px;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.3);white-space:nowrap}
+.spacer{flex:1}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:8px 12px;background:var(--accent);color:#fff;cursor:pointer;box-shadow:0 3px 0 var(--accentDark)}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--accentDark)}
+button.sec{background:var(--teal);box-shadow:0 3px 0 var(--tealDark)}
+button.ghost{background:#d9cbb8;color:var(--ink);box-shadow:0 3px 0 #a8977f}
+button.off{opacity:.55;text-decoration:line-through}
+button:disabled{background:#b9b2a8;box-shadow:0 3px 0 #8d867c;cursor:not-allowed;transform:none}
+
+#stage{position:relative;width:100%;aspect-ratio:480/300;border-radius:14px;overflow:hidden;background:#000}
+#stage canvas{display:block;touch-action:none;cursor:pointer;image-rendering:pixelated}
+.overlay{position:absolute;inset:0;z-index:2;background:rgba(8,18,30,.62);display:none;align-items:center;justify-content:center;padding:14px}
+.overlay.show{display:flex}
+.card{background:var(--panel);border-radius:16px;padding:18px 22px;max-width:800px;width:100%;max-height:100%;overflow:auto;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.card h2{margin:0 0 4px;font-size:26px}
+.card .sub{margin:0 0 14px;color:var(--muted)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:12px}
+
+#animals{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.animal{background:#fff;border:3px solid #ead9c2;border-radius:14px;padding:10px;text-align:center;cursor:pointer;transition:transform .1s,border-color .1s}
+.animal:hover{transform:translateY(-3px);border-color:var(--accent)}
+.animal.sel{border-color:var(--teal);background:#eefaf7}
+.animal canvas{width:120px;height:120px;image-rendering:pixelated}
+.animal b{display:block;font-size:18px}
+.animal small{color:var(--muted)}
+
+.shopRow{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;background:#fff;border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.shopRow .ic{font-size:30px;text-align:center}
+.shopRow .nm{font-weight:700;font-size:17px}
+.shopRow .ef{color:var(--muted);font-size:14px}
+.dots{letter-spacing:2px;color:var(--teal);font-size:13px}
+
+#bookGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.zoneTitle{grid-column:1/-1;margin:8px 0 0;font-size:18px}
+.fishCell{background:#fff;border-radius:12px;padding:8px;text-align:center;border:3px solid #eee}
+.fishCell canvas{width:120px;height:72px;image-rendering:pixelated}
+.fishCell b{display:block;font-size:14px}
+.fishCell small{display:block;color:var(--muted);font-size:12px}
+
+#catchCard{text-align:center;max-width:380px}
+#catchCard canvas{width:330px;max-width:100%;height:auto;aspect-ratio:110/54;image-rendering:pixelated;animation:fishBob 1.6s steps(4) infinite}
+@keyframes fishBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+#ovCatch.show #catchCard{animation:cardPop .25s steps(3)}
+@keyframes cardPop{from{transform:scale(.8)}to{transform:scale(1)}}
+#catchRar{font-weight:800;letter-spacing:1px;text-transform:uppercase}
+#catchName{font-size:26px;margin:2px 0}
+.badge{display:inline-block;background:#ffd23f;color:#5a4300;border-radius:999px;padding:2px 10px;font-weight:800;font-size:13px;margin:4px}
+
+#help{color:#cfe3ef;font-size:14px;margin-top:8px;text-align:center;line-height:1.5}
+kbd{background:#1d3a52;border-radius:5px;padding:1px 6px;border:1px solid #3d6283}
